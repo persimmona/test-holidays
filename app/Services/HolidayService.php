@@ -108,8 +108,7 @@ class HolidayService
         if ($weekNumber['number'] == $lastWeekNumber) {
             $weekNumber['isLast'] = true;
             return $weekNumber;
-        } else
-            return $weekNumber;
+        } else return $weekNumber;
     }
 
     private function changeDateFormat ($date)
@@ -124,57 +123,43 @@ class HolidayService
         return $formatedDate;
     }
 
-    private function isWeekend ($date)
-    {
-        return (date('N', $date) >= 6);
-    }
-
     private function compareDates ($date1, $date2)
     {
-        if ($date1['month'] == $date2['month']) {
-            if ($date1['day'] == $date2['day']) {
-                return $date2['title'];
-            } elseif ($date1['day_of_week'] == $date2['day_of_week']&&
-                ($date1['number_of_week']['number'] == $date2['number_of_week']||
-                    $date1['number_of_week']['isLast'])) {
-                return $date2['title'];
-            }
-        } else {
-            return false;
-        }
+        if ($date1['month'] != $date2['month']) return false;
+        $isCorrectDate = $date1['day_of_week'] == $date2['day_of_week'] &&
+            ($date1['number_of_week']['number'] == $date2['number_of_week'] ||
+                $date1['number_of_week']['isLast']);
+        if ($date1['day'] == $date2['day'] || $isCorrectDate) return $date2['title'];
+    }
+
+    private function isWeekend ($date)
+    {
+        return date('N', $date) >= 6 ? 'It is weekends!': null;
     }
 
     private function isHoliday ($date)
     {
         foreach ($this->holidays as $holiday) {
             $result = $this->compareDates($date, $holiday);
-            if ($result) {
-                return $result;
-            }
+            if ($result) return $result.' holidays!';
         }
-        return false;
+        return null;
+    }
+    private function isMondayAfterHoliday ($date, $request)
+    {
+        if ($date['day_of_week'] != 1) return null;
+        $sunday = strtotime($request. " -1 day");
+        $saturday = strtotime($request. " -2 day");
+        $formatedSunday = $this->changeDateFormat($sunday);
+        $formatedSaturday = $this->changeDateFormat($saturday);
+        return $this->isHoliday($formatedSunday) || $this->isHoliday($formatedSaturday) ?
+            'It is day-off because of holidays!' : null;
     }
 
     public function checkDate ($request)
     {
         $date = strtotime($request);
         $formatedDate = $this->changeDateFormat($date);
-        $result = $this->isHoliday($formatedDate);
-        if($result) {
-            return $result.' holidays!';
-        } elseif ($formatedDate['day_of_week']==1) {
-            $sunday = strtotime($request. " -1 day");
-            $saturday = strtotime($request. " -2 day");
-            $formatedSunday = $this->changeDateFormat($sunday);
-            $formatedSaturday = $this->changeDateFormat($saturday);
-            if ($this->isHoliday($formatedSunday)|| $this->isHoliday($formatedSaturday)) {
-                return 'It is day-off because of holidays!';
-            }
-        }
-        if ($this->isWeekend($date)) {
-            return 'It is weekends!';
-        } else {
-            return 'It is working day!';
-        }
+        return $this->isHoliday($formatedDate) ?? $this->isMondayAfterHoliday($formatedDate, $request) ?? $this->isWeekend($date) ?? 'It is working day!';
     }
 }
