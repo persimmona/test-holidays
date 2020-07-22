@@ -17,7 +17,8 @@
         <h2 class="mb-4"> Enter date to check it for holidays!</h2>
         <form class="date-form" action="" method="post">
             @csrf
-            <input class="form-control" type="text" name="date" id="date" placeholder="For example, 01.01.2000" required>
+            <input class="form-control" type="text" name="date" id="date" placeholder="For example, 01.01.2000"
+                   value="{{old('date')}}" required>
             <small class="form-text text-danger">{{ $errors->first('date')}}</small>
             <button class="btn btn-dark pl-4 pr-4 mt-3" type="submit" id="submit">Submit</button>
         </form>

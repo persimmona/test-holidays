@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Validator;
-
 class HolidayService
 {
     private $holidays;
@@ -157,33 +155,26 @@ class HolidayService
         return false;
     }
 
-    public function validate ($request)
+    public function checkDate ($request)
     {
-        Validator::make($request->only('date'), [
-            'date' => 'required|date',
-        ])->validate();
-    }
-
-    public function checkDateForHolidays ($request)
-    {
-        $date = strtotime($request['date']);
+        $date = strtotime($request);
         $formatedDate = $this->changeDateFormat($date);
-
         $result = $this->isHoliday($formatedDate);
         if($result) {
-            return redirect()->back()->with('response', $result.' holidays!');
+            return $result.' holidays!';
         } elseif ($formatedDate['day_of_week']==1) {
-            $sunday = strtotime($request['date']. " -1 day");
-            $saturday = strtotime($request['date']. " -2 day");
+            $sunday = strtotime($request. " -1 day");
+            $saturday = strtotime($request. " -2 day");
             $formatedSunday = $this->changeDateFormat($sunday);
             $formatedSaturday = $this->changeDateFormat($saturday);
             if ($this->isHoliday($formatedSunday)|| $this->isHoliday($formatedSaturday)) {
-                return redirect()->back()->with('response', 'It is day-off because of holidays!');
+                return 'It is day-off because of holidays!';
             }
-        } elseif ($this->isWeekend($date)) {
-            return redirect()->back()->with('response','It is weekends!');
+        }
+        if ($this->isWeekend($date)) {
+            return 'It is weekends!';
         } else {
-            return redirect()->back()->with('response','It is working day!');
+            return 'It is working day!';
         }
     }
 }

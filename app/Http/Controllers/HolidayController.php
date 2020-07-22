@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\HolidayRequest;
 use App\Services\HolidayService;
 use Illuminate\Http\Request;
 
@@ -19,9 +20,9 @@ class HolidayController extends Controller
         return view('holidays');
     }
 
-    public function store (Request $request)
+    public function store (HolidayRequest $request)
     {
-        $this->holidayService->validate($request);
-        return $this->holidayService->checkDateForHolidays($request);
+        $response = $this->holidayService->checkDate($request->get('date'));
+        return redirect()->back()->with('response', $response);
     }
 }
